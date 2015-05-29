@@ -89,7 +89,7 @@ class Term:
 
     def __init__(self, name):
         self.name = name
-        self.var = name[0].isupper()
+        self.var = name[0].isupper() # TRUE if term is a variable
 
     def __eq__(self, t):
         return isinstance(t, Term) and self.name == t.name

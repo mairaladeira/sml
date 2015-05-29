@@ -1,5 +1,6 @@
 __author__ = 'Maira'
 
+from OIlogic import Atom, AtomSet
 
 class Effect:
     def __init__(self, pos, neg):
@@ -25,10 +26,15 @@ class Effect:
     Use the method toSet from AtomSet class in order to get the
     content of each state as a set of atoms
     """
-    def getEffect(self, prevState, newState):
+    @staticmethod
+    def getEffect(prevState, newState):
         prev_atoms = prevState.toSet()
         new_atoms = newState.toSet()
-        #implement the rest
+        # finds difference in sets
+        add_atoms = list(new_atoms.difference(prev_atoms))
+        del_atoms = list(prev_atoms.difference(new_atoms))
+
+        return Effect(AtomSet(add_atoms), AtomSet(del_atoms))
 
     """
     Return the list of atoms of all OI extensions theta of OI substitution subst,
