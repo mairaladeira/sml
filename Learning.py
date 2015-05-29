@@ -8,8 +8,8 @@ class Effect:
 
     def __str__(self):
         s = '{'
-        s += '('+str(self.Add)+')'
-        s += '('+str(self.Del)+')'
+        s += 'Add: '+str(self.Add)+', '
+        s += 'Del: '+str(self.Del)
         s += '}'
         return s
 
@@ -48,6 +48,14 @@ class Example:
         self.e = effect
         self.name = ''
 
+    def __str__(self):
+        s = '{'
+        s += 'State: '+str(self.s)+', '
+        s += 'Action: '+str(self.a)+', '
+        s += 'Effect: '+str(self.e)
+        s += '}\n'
+        return s
+
     def set_name(self, name):
         self.name = name
 
@@ -59,6 +67,14 @@ class Rule:
         self.e = effect
         self.name = ''
         self.anc = None
+
+    def __str__(self):
+        s = '{'
+        s += 'State: '+str(self.s)+', '
+        s += 'Action: '+str(self.a)+', '
+        s += 'Effect: '+str(self.e)
+        s += '}\n'
+        return s
 
     def set_name(self, name):
         self.name = name
@@ -116,10 +132,13 @@ class Model:
         return self.exMem
 
     def __str__(self):
-        s = '{'
-        s += '('+str(self.rules)+'),'
-        s += '('+str(self.exMem)+')'
-        s += '}'
+        s = 'Model:\n'
+        s += '\tRules:\n'
+        for r in self.rules:
+            s += '\t\t'+str(r)
+        s += '\tExamples Memory:\n'
+        for ex in self.exMem:
+            s += '\t\t'+str(ex)+'\n'
         return s
 
     """
