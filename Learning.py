@@ -101,13 +101,19 @@ class Rule:
     Check gaven pseudo code.
     """
     def postgeneralize(self, ex, ownSubst, exSubst):
-        return
+        return None
 
 
 class Model:
     def __init__(self):
         self.rules = set()
         self.exMem = set()
+
+    def get_rules(self):
+        return self.rules
+
+    def get_exMem(self):
+        return self.exMem
 
     def __str__(self):
         s = '{'
@@ -139,7 +145,7 @@ class Model:
     Return a list of examples from exMem that are not covered by the Model anymore
     """
     def getUncovEx(self, rule):
-        return
+        return None
 
     """
     Return a boolean indicating if the rule is contradicted by the Model.
@@ -157,4 +163,11 @@ class Model:
     IRALe algorithm. This function should use all the previous ones.
     """
     def IRALe(self, ex):
-        return
+        lex = set()
+        for r in self.rules:
+            if self.contradicted(ex):
+                self.specialize(r)
+            for e in self.getUncovEx(r):
+                lex.add(e)
+        self.generalize(lex)
+        #Memorize x if it triggered a revision of the theory

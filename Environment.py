@@ -41,6 +41,9 @@ class Env:
         self.model = Env.model7B2C()
         self.nbBl = nbBlocks
 
+    def get_model(self):
+        return self.model
+
     def do(self, state, action):
         return Planner.predict(self.model,state,action)
 

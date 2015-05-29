@@ -1,5 +1,6 @@
 __author__ = 'Maira'
 
+from Environment import Env
 
 class Agent:
     def __init__(self, env, sizeEp, npMaxSteps):
@@ -34,5 +35,7 @@ class Agent:
     def run(self):
         return
 
-    if __name__ == "__main__":
-        print('Add initialization of agent here')
+if __name__ == "__main__":
+    env = Env(3)
+    print(env.get_model())
+    print('Add initialization of agent here')
