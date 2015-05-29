@@ -88,11 +88,11 @@ class Term:
     lastVarIndex=0
 
     def __init__(self, name):
-        self.name=name
-        self.var=name[0].isupper()
+        self.name = name
+        self.var = name[0].isupper()
 
-    def __eq__(self,t):
-        return isinstance(t,Term) and self.name==t.name
+    def __eq__(self, t):
+        return isinstance(t, Term) and self.name == t.name
 
     def __hash__(self):
         return hash(self.name)
@@ -105,26 +105,25 @@ class Term:
 
     @staticmethod
     def newVar():
-        Term.lastVarIndex = Term.lastVarIndex + 1
+        Term.lastVarIndex += 1
         #print "newVar : Var",Term.lastVarIndex
-        return Term("Var"+str(Term.lastVarIndex))
+        return Term("Var" + str(Term.lastVarIndex))
 
     def filterOI(self, other, s=Subst([],[])):
         if self.isVar():
             if other.isVar():
                 return self.eq(other)
-            return s.affectOI(self,other)
+            return s.affectOI(self, other)
         else:
             return s.forbidValue(self) and self == other
-        return False
-
+        #return False
 
     def generalize(self, other, s=Subst([], []), s2=Subst([],[])):
-    #  if self.__eq__(other):
-    #     if s.forbidValue(self) and s2.forbidValue(other):
-    #       return self
-      #   print "Forbidden value ","self",self,"s",s,"other",other,"so",s2
-    #     return None
+        #  if self.__eq__(other):
+        #     if s.forbidValue(self) and s2.forbidValue(other):
+        #       return self
+          #   print "Forbidden value ","self",self,"s",s,"other",other,"so",s2
+        #     return None
         if s.isAttributed(self):
             gen = s.varForVal(self)
         elif s2.isAttributed(other):
@@ -135,10 +134,10 @@ class Term:
             gen = other
         else:
             gen = Term.newVar()
-    # selfOk1=(gen==self and s.forbidValue(self))
-    # selfOk2=selfOk1 or s.affectOI(gen,self)
-    # otherOk1=(gen==other and s2.forbidValue(other))
-    # otherOk2=otherOk1 or s2.affectOI(gen,other)
+        # selfOk1=(gen==self and s.forbidValue(self))
+        # selfOk2=selfOk1 or s.affectOI(gen,self)
+        # otherOk1=(gen==other and s2.forbidValue(other))
+        # otherOk2=otherOk1 or s2.affectOI(gen,other)
         if ((gen == self and s.forbidValue(self)) or s.affectOI(gen,self)) and ((gen == other and s2.forbidValue(other)) or s2.affectOI(gen, other)):
             return gen
     #   print "Echec gen",gen,"sOk",selfOk1,selfOk2,"oOk",otherOk1,otherOk2," self",self,"s",s,"other",other,"so",s2
@@ -159,19 +158,19 @@ class Term:
 
 
 class Signature:
-    def __init__(self,name,arity=0):
+    def __init__(self, name, arity=0):
         self.name = name
         self.arity = arity
 
-    def __eq__(self,s):
+    def __eq__(self, s):
         return (self.arity == s.arity) and (self.name == s.name)
 
 
 class Atom:
     def __init__(self, atom, L_args):
-        if isinstance(atom,Signature):
+        if isinstance(atom, Signature):
             self.sig = atom
-        elif isinstance(atom,str):
+        elif isinstance(atom, str):
             s = atom.split('\\')
             self.sig = Signature(s[0], int(s[1]))
         self.args = L_args
@@ -195,7 +194,7 @@ class Atom:
             L_args.append(Term(arg.strip()))
         return Atom(pred, L_args)
 
-    def unifyOI(self, other, s=Subst([],[])):
+    def unifyOI(self, other, s=Subst([], [])):
         if not(self.sig.__eq__(other.sig)):
             #print "Signature differente"
             return False
