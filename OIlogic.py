@@ -276,6 +276,10 @@ class AtomSet:
         s += "]"
         return s
 
+    def __eq__(self, a):
+        return isinstance(a, AtomSet) and str(self) == str(a)
+
+
     def toSet(self):
         return set(self.set)
 

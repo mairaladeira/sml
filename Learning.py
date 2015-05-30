@@ -134,29 +134,50 @@ class Rule:
     - (r.s)sigmaTheta is contained by gstate
     """
     def prematch(self, gstate, gaction, sigma):
+        #condition 1: (r.a)sigma = gaction
         if not self.a.filterOI(gaction, sigma):
             return {}
         theta = self.s.filterIncOI(gstate, sigma)
+        #condition 2: (r.s)sigmaTheta is contained by gstate
+        for t in theta:
+            app = self.s.apply(t)
+            if not(app.toSet().issubset(gstate.toSet())):
+                return {}
         return theta
 
     """
     Returns the list of substitutions R of all OI extensions theta of OI
     substitution sigma such that the rule post-matches (gstate, gaction) with
     substitution theta.
-    - (r.a)invsubSigma = gaction
-    - (r.e)invsubSigmaTheta = geffect
+    - (r.a)invroSigma = gaction
+    - (r.e)invroSigmaTheta = geffect
     """
     def postmatch(self, gaction, geffect, sigma):
-        self.a.filterOI(gaction, sigma)
-        inv = self.a.revApply(sigma)
+        condition_1 = True
+        condition_2 = True
+        ro = Subst([], [])
+        self.a.filterOI(gaction, ro)
+        ro_subs = self.a.apply(ro)
+        #(r.a).invro
+        inv = ro_subs.revApply(ro)
         if not inv.filterOI(gaction, sigma):
+            condition_1 = False
+        #(r.a).invroSigma
+        first_part = inv.apply(sigma)
+        #condition 1: (r.a)invroSigma = gaction
+        if str(first_part) != str(gaction):
+            condition_1 = False
+        theta = self.e.filterOI(geffect, sigma)
+        for t in theta:
+            subs_apply_add = self.e.Add.apply(t)
+            subs_apply_del = self.e.Del.apply(t)
+            #Condition 2 (r.e)invroSigmaTheta = geffect
+            if str(subs_apply_add) != str(geffect.Add) or str(subs_apply_del) != str(geffect.Del):
+                condition_2 = False
+        if condition_1 and condition_2:
+            return theta
+        else:
             return {}
-        effect_list = self.e.Add.toSet().union(self.e.Del.toSet())
-        effect = AtomSet(effect_list)
-        geffect_list = geffect.Add.toSet().union(geffect.Del.toSet())
-        inv = effect.revApply(sigma)
-        theta = inv.filterIncOI(AtomSet(geffect_list), sigma)
-        return theta
 
     """
     Returns a (int, Subst) pair. If the rule coves ex, this function must return
@@ -173,7 +194,15 @@ class Rule:
             post_match = self.postmatch(ex.a, ex.e, Subst([], []))
             if len(post_match) == 0:
                 return [-1, pre_match]
-            return [1, post_match]
+            else:
+                if len(pre_match) != len(post_match):
+                    return [-1, pre_match]
+                i = 0
+                for prem in pre_match:
+                    if str(pre_match[i]) != str(post_match[i]):
+                            return [-1, pre_match]
+                    i += 1
+                return [1, post_match]
 
     """
     Returns either None or a Rule and updates ownSubst and exSubst.
