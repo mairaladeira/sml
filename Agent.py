@@ -43,6 +43,11 @@ if __name__ == "__main__":
     state = env.generateState()
     actions = env.getAllActions()
     #print(effect)
+    for r in rules:
+        print(r.wellformed())
+        print(r)
+        print('---------')
+    """
     for a in actions:
         for r in rules:
             if r.wellformed():
@@ -53,4 +58,5 @@ if __name__ == "__main__":
                 effect = Effect.getEffect(state, newState)
                 post_m = r.postmatch(a, effect, s1)
 
+    """
     print('Add initialization of agent here')
