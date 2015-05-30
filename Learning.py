@@ -106,15 +106,6 @@ class Rule:
 
         # rule.effect.Del is contained by rule.state
         condition_1 = effect_del.issubset(state)
-        # for ed in effect_del:
-        #     present = False
-        #     for s in state:
-        #         present = s.__eq__(ed)
-        #         if present:
-        #             break
-        #     if not present:
-        #         return False
-        #
 
         # rule.effect.Add intersection rule.state = empty
         if not effect_add.intersection(state):
@@ -122,31 +113,17 @@ class Rule:
         else:
             condition_2 = False
 
-        # for ea in effect_add:
-        #     present = False
-        #     for s in state:
-        #         present = s.__eq__(ea)
-        #         if present:
-        #             break
-        #     if present:
-        #         return False
-        # print("condition 2")
         action_vars = self.a.getVarSet()
         effect_vars = self.e.Add.getVarSet().union(self.e.Del.getVarSet())
         state_vars = self.s.getVarSet()
 
-
-        # All vars of rule.action should occur in r.state and r.effect and r.effect may
+        # All vars of rule.action should occur in r.state union r.effect and r.effect may
         # refer objects/variables not occuring in r.action
         #condition_3 = action_vars.issubset(effect_vars.union(state_vars))
+        # {r.s - r.e.del} u {r.e.add}
         diff_variables = AtomSet(list(state.difference(effect_del).union(effect_add))).getVarSet()
         condition_3 = action_vars.issubset(diff_variables)
-        #for av in action_vars:
-        #    if av not in effect_vars:
-        #        return False
-        #    if av not in state_vars:
-        #        return False
-
+        
         return condition_1 and condition_2 and condition_3
 
     """
