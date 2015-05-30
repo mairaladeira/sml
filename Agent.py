@@ -36,6 +36,6 @@ class Agent:
         return
 
 if __name__ == "__main__":
-    env = Env(3)
-    print(env.get_model())
+    env = Env(4)
+    rules = env.get_model().get_rules()
     print('Add initialization of agent here')

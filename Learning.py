@@ -87,9 +87,50 @@ class Rule:
 
     """
     This function should return true if the rule is well formed and false otherwise.
-    Not necessary to check condition iii for the well formed definition
+    For a rule to be well formed:
+    - rule.effect.Del is contained by rule.state
+    - rule.effect.Add intersection rule.state = empty
+    - All vars of rule.action should occur in r.state and r.effect and r.effect may
+      refer objects/variables not occuring in r.action
     """
     def wellformed(self):
+        effect_del = self.e.Del.toSet()
+        state = self.s.toSet()
+        effect_add = self.e.Add.toSet()
+
+        # rule.effect.Del is contained by rule.state
+        for ed in effect_del:
+            present = False
+            for s in state:
+                present = s.__eq__(ed)
+                if present:
+                    break
+            if not present:
+                return False
+
+        # rule.effect.Add intersection rule.state = empty
+        for ea in effect_add:
+            present = False
+            for s in state:
+                present = s.__eq__(ea)
+                if present:
+                    break
+            if present:
+                return False
+
+        action_vars = self.a.getVarSet()
+        effect_vars = self.e.Add.getVarSet().union(self.e.Del.getVarSet())
+        state_vars = self.s.getVarSet()
+
+        # All vars of rule.action should occur in r.state and r.effect and r.effect may
+        # refer objects/variables not occuring in r.action
+
+        for av in action_vars:
+            if av not in effect_vars:
+                return False
+            if av not in state_vars:
+                return False
+
         return True
 
     """
