@@ -35,3 +35,8 @@ print(s2)
 kk = as1.filterIncOI(bs1)
 print(kk[0])
 
+a = set([1,2,3])
+b = set([4,5,6])
+
+if(a.intersection(b)):
+    print(a.intersection(b))
