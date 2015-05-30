@@ -131,7 +131,6 @@ class Rule:
         condition_3 = action_vars.issubset(diff_variables)
         
         return condition_1 and condition_2 and condition_3
-
     """
     Return the list of substitutions R of all OI extensions theta of OI
     substitution sigma such that the rule pre-matches (gstate, gaction) with
@@ -144,6 +143,11 @@ class Rule:
         if not self.a.filterOI(gaction, sigma):
             return {}
         theta = self.s.filterIncOI(gstate, sigma)
+        #condition 2: (r.s)sigmaTheta is contained by gstate
+        for t in theta:
+            app = self.s.apply(t)
+            if not(app.toSet().issubset(gstate.toSet())):
+                return {}
         return theta
 
     """
@@ -157,15 +161,21 @@ class Rule:
         condition_1 = True
         condition_2 = True
         ro = Subst([], [])
+        # this is not necessarily true as
+        # ((r.a)rho-1)sigma = a not  (r.a)rho-1 = a
         self.a.filterOI(gaction, ro)
+
         ro_subs = self.a.apply(ro)
         #(r.a).invro
+        # you're applying ((r.a)rho)rho-1 = r.a (what's the point?)
         inv = ro_subs.revApply(ro)
+        # so this is equivalent to making (r.a)sigma = a and the previous code is not making anything
         if not inv.filterOI(gaction, sigma):
             condition_1 = False
         #(r.a).invroSigma
         first_part = inv.apply(sigma)
         #condition 1: (r.a)invroSigma = gaction
+        # i think this part is OK:
         if str(first_part) != str(gaction):
             condition_1 = False
         theta = self.e.filterOI(geffect, sigma)
@@ -179,6 +189,19 @@ class Rule:
             return theta
         else:
             return {}
+
+    # This code does the same (i had it before your commit, don't think i like to work twice)
+    def postmatch2(self, gaction, geffect, sigma):
+        if not self.a.filterOI(gaction, sigma):
+            return {}
+
+        theta = self.e.filterOI(geffect, sigma)
+
+        # if (r.e)theta != geffect then return empty
+        if not (theta and self.e.apply(theta[0]).__eq__(geffect)):
+            return {}
+
+        return theta
 
     """
     Returns a (int, Subst) pair. If the rule coves ex, this function must return

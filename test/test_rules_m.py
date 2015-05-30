@@ -39,6 +39,7 @@ s1 = Subst([], [])
 print('pre-match:'+str(rule_1.prematch(ex_1.s, ex_1.a, s1)[0]))
 #check post-match
 print('post-match:'+str(rule_1.postmatch(ex_1.a, ex_1.e, s1)[0]))
+print('post-match2:'+str(rule_1.postmatch2(ex_1.a, ex_1.e, s1)[0]))
 #check cover
 print('cover:')
 print('\ttype: '+str(rule_1.covers(ex_1)[0]))
