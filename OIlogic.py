@@ -7,6 +7,23 @@ class Subst:
         self.vals = lconst
         self.forbidVal = []
 
+    def __eq__(self, other):
+        res = True
+        if len(self.vars) != len(other.vars) or len(self.vals) != len(other.vals) or \
+                        len(self.forbidVal) != len(other.forbidVal):
+            return False
+        else:
+            if set(self.forbidVal) != set(other.forbidVal):
+                return False
+            else:
+                for elem in self.vars:
+                    if elem in other.vars and other.vals[other.vars.index(elem)] == self.vals[self.vars.index(elem)]:
+                        res *= True
+                    else:
+                        res *= False
+        return res
+
+
     def valOfVar(self, var):
         if var in self.vars:
             ind = self.vars.index(var)

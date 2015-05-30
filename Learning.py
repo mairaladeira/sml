@@ -211,22 +211,22 @@ class Rule:
     occur, the function should return (0, None)
     """
     def covers(self, ex):
-        pre_match = self.prematch(ex.s, ex.a, Subst([], []))
+        # We will need the substitution sigma to check if both are the same
+        sigma = Subst([], [])
+        pre_match = self.prematch(ex.s, ex.a, sigma)
         if len(pre_match) == 0:
             return [0, None]
         else:
-            post_match = self.postmatch(ex.a, ex.e, Subst([], []))
+            post_match = self.postmatch(ex.a, ex.e, sigma)
             if len(post_match) == 0:
                 return [-1, pre_match]
             else:
-                if len(pre_match) != len(post_match):
+                # Comparison of unordered lists:
+                if not pre_match[0].__eq__(post_match[0]):
                     return [-1, pre_match]
-                i = 0
-                for prem in pre_match:
-                    if str(pre_match[i]) != str(post_match[i]):
-                            return [-1, pre_match]
-                    i += 1
-                return [1, post_match]
+                else:
+                    return [1, post_match]
+
 
     """
     Returns either None or a Rule and updates ownSubst and exSubst.
