@@ -30,16 +30,16 @@ class Subst:
             return self.vals[ind]
         return False
 
-    def isAttributed(self,val):
+    def isAttributed(self, val):
         return val in self.vals
 
-    def hasAttribution(self,var):
+    def hasAttribution(self, var):
         return var in self.vars
 
 
-    def varForVal(self,val):
+    def varForVal(self, val):
         if val in self.vals:
-            ind=self.vals.index(val)
+            ind = self.vals.index(val)
             return self.vars[ind]
         if val.isVar():
             return val
@@ -59,7 +59,7 @@ class Subst:
         self.vals.append(val)
         return True
 
-    def forbidValue(self,c):
+    def forbidValue(self, c):
         if c in self.vals:
             return False
         if not(c in self.forbidVal):
@@ -68,7 +68,7 @@ class Subst:
 
     def __add__(self,other):
         s = self.copy()
-        for i,var in enumerate(other.vars):
+        for i, var in enumerate(other.vars):
             if (not (s.affectOI(var, other.vals[i]))):
                 continue
         return s
@@ -81,14 +81,14 @@ class Subst:
             s.affectOI(var, self.vals[i])
         return s
 
-    def setTo(self,other):
+    def setTo(self, other):
         self.vars = []
         self.vals = []
         self.forbidVal = []
         for c in other.forbidVal:
             self.forbidValue(c)
         for i,var in enumerate(other.vars):
-            self.affectOI(var,other.vals[i])
+            self.affectOI(var, other.vals[i])
 
     def __str__(self):
         s = "{ "
@@ -102,7 +102,7 @@ class Subst:
 
 
 class Term:
-    lastVarIndex=0
+    lastVarIndex = 0
 
     def __init__(self, name):
         self.name = name
