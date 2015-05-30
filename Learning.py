@@ -97,6 +97,22 @@ class Rule:
     def set_name(self, name):
         self.name = name
 
+    @staticmethod
+    def compareSubst(subst_1, subst_2):
+        res = True
+        if len(subst_1.vars) != len(subst_2.vars) or len(subst_1.vals) != len(subst_2.vals) or \
+                        len(subst_1.forbidVal) != len(subst_2.forbidVal):
+            return False
+        else:
+            if set(subst_1.forbidVal) != set(subst_2.forbidVal):
+                return False
+            else:
+                for elem in subst_1.vars:
+                    if elem in subst_2.vars and subst_2.vals[subst_2.vars.index(elem)] == subst_1.vals[subst_1.vars.index(elem)]:
+                        res *= True
+                    else:
+                        res *= False
+        return res
     """
     This function should return true if the rule is well formed and false otherwise.
     For a rule to be well formed:
@@ -224,7 +240,7 @@ class Rule:
                 return [-1, pre_match]
             else:
                 # Comparison of unordered lists:
-                if not pre_match[0].__eq__(post_match[0]):
+                if not Rule.compareSubst(pre_match[0], post_match[0]):
                     return [-1, pre_match]
                 else:
                     return [1, post_match]
