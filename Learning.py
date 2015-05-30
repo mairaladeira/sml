@@ -151,13 +151,9 @@ class Rule:
         return theta
 
     """
-    Returns the list of substitutions R of all OI extensions theta of OI
-    substitution sigma such that the rule post-matches (gstate, gaction) with
-    substitution theta.
-    - (r.a)invroSigma = gaction
-    - (r.e)invroSigmaTheta = geffect
+    Do not use
     """
-    def postmatch(self, gaction, geffect, sigma):
+    def postmatch_old(self, gaction, geffect, sigma):
         condition_1 = True
         condition_2 = True
         ro = Subst([], [])
@@ -190,8 +186,14 @@ class Rule:
         else:
             return {}
 
-    # This code does the same (i had it before your commit, don't think i like to work twice)
-    def postmatch2(self, gaction, geffect, sigma):
+    """
+    Returns the list of substitutions R of all OI extensions theta of OI
+    substitution sigma such that the rule post-matches (gstate, gaction) with
+    substitution theta.
+    - (r.a)invroSigma = gaction
+    - (r.e)invroSigmaTheta = geffect
+    """
+    def postmatch(self, gaction, geffect, sigma):
         if not self.a.filterOI(gaction, sigma):
             return {}
 
@@ -231,9 +233,35 @@ class Rule:
     """
     Returns either None or a Rule and updates ownSubst and exSubst.
     Check gaven pseudo code.
+    if we can find a generalization gact of r.a and x.a (with sig and th):
+        Find the set R of conservative generalizations of r.e.Add and  x.e.Add
+                                starting from the same sig and th
+        for all such generalizations gadd with subst sig' and th':
+            Find a conservative generalization gdel of r.e.Del and x.e.Del
+                                starting from sig' and th'
+            if gdel exists (with subs sig'' and th''):
+                Let gpre be the reverse application of sig'' to r.p
+                grule=(gpre,gact,(gadd,gdel))
+                Return grule and update sig and th to sig'' and th''
+
     """
     def postgeneralize(self, ex, ownSubst, exSubst):
-        return None
+        gact = self.a.generalize(ex.a, ownSubst, exSubst)
+        if gact:
+            gadd = self.e.Add.generalizeEqOI(ex.e.Add, ownSubst, exSubst)
+            for g in gadd:
+                sig_1 = g[1]
+                th_1 = g[2]
+                gdel = self.e.Del.generalizeIncOI(ex.e.Del, sig_1, th_1)
+                if gdel:
+                    gpre = self.s.revApply(sig_1)
+                    ownSubst = sig_1
+                    exSubst = th_1
+                    grule = Rule(gpre, gact, Effect(g[0], gdel))
+                    return grule
+
+        else:
+            return None
 
 
 class Model:
