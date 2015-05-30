@@ -74,6 +74,8 @@ class Subst:
             self.affectOI(var,other.vals[i])
 
     def __str__(self):
+        if len(self.vars) == 0 and len(self.forbidVal) == 0:
+            return {}
         s = "{ "
         for i, var in enumerate(self.vars):
             s = s + "(" + str(var) + "\\" + str(self.vals[i]) + ") "
@@ -296,7 +298,7 @@ class AtomSet:
             L.append(atom.revApply(subs))
         return AtomSet(L)
 
-    def filterIncOI(self, other, s=Subst([],[])):
+    def filterIncOI(self, other, s=Subst([], [])):
         if self.set == []:
             return [s]
         atom = self.set[0]

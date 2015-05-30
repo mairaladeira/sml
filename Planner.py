@@ -25,11 +25,13 @@ class Planner:
 
     @staticmethod
     def getRuleVarSet(rule):
-        return rule.p.getVarSet() | rule.a.getVarSet() | rule.e.Add.getVarSet() | rule.e.Del.getVarSet()
+        #return rule.p.getVarSet() | rule.a.getVarSet() | rule.e.Add.getVarSet() | rule.e.Del.getVarSet()
+        return rule.s.getVarSet() | rule.a.getVarSet() | rule.e.Add.getVarSet() | rule.e.Del.getVarSet()
 
     @staticmethod
     def getRuleArgSet(rule):
-        return rule.p.getArgSet() | rule.a.getArgSet() | rule.e.Add.getArgSet() | rule.e.Del.getArgSet()
+        #return rule.p.getArgSet() | rule.a.getArgSet() | rule.e.Add.getArgSet() | rule.e.Del.getArgSet()
+        return rule.s.getArgSet() | rule.a.getArgSet() | rule.e.Add.getArgSet() | rule.e.Del.getArgSet()
 
     @staticmethod
     def ruleToASP(rule,i,f):
@@ -58,7 +60,8 @@ class Planner:
         assoc = "assoc("+act+","+rId+")"
         f.write(assoc+body+".\n")
         #preconditions
-        for atom in rule.p.set:
+        #for atom in rule.p.set:
+        for atom in rule.s.set:
             f.write("pre("+str(atom)+","+act+","+rId+"):- "+assoc+".\n")
         #effects
         for atom in rule.e.Add.set:

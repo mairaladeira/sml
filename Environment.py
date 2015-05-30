@@ -59,7 +59,7 @@ class Env:
         floor = Term("floor")
         wht = Term("white")
         blk = Term("black")
-        Colors = [wht,blk]
+        Colors = [wht, blk]
         L = [a, b, c, d, e, f, g]
         L = L[:self.nbBl]
         for i in xrange(21-self.nbBl):
@@ -90,9 +90,11 @@ class Env:
                 st1 = newS
         #rint "GoalState : ",st1
         goal = list(set(st1.set)-set(state.set))
-        k = random.randint(3, len(st1.set) - 1)
+        #k = random.randint(3, len(st1.set) - 1)
+        k = random.randint(3, len(state) - 1)
         for i in xrange(k):
-            sup = random.choice(st1.set)
+            #sup = random.choice(st1.set)
+            sup = random.choice(state.set)
             if sup not in goal:
                 goal.append(sup)
         return AtomSet(goal)

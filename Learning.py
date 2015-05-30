@@ -2,6 +2,7 @@ __author__ = 'Maira'
 
 from OIlogic import Atom, AtomSet, Subst
 
+
 class Effect:
     def __init__(self, pos, neg):
         self.Add = pos
@@ -84,7 +85,7 @@ class Rule:
         s += 'State: '+str(self.s)+', '
         s += 'Action: '+str(self.a)+', '
         s += 'Effect: '+str(self.e)
-        s += '}\n'
+        s += '}'
         return s
 
     def set_name(self, name):
@@ -142,17 +143,35 @@ class Rule:
     Return the list of substitutions R of all OI extensions theta of OI
     substitution sigma such that the rule pre-matches (gstate, gaction) with
     substitution theta.
+    - (r.a)sigma = gaction
+    - (r.s)sigmaTheta is contained by gstate
     """
     def prematch(self, gstate, gaction, sigma):
-        return
+        if not self.a.filterOI(gaction, sigma):
+            return {}
+        theta = self.s.filterIncOI(gstate, sigma)
+        return theta
 
     """
     Returns the list of substitutions R of all OI extensions theta of OI
     substitution sigma such that the rule post-matches (gstate, gaction) with
     substitution theta.
+    - (r.a)invsubSigma = gaction
+    - (r.e)invsubSigmaTheta = geffect
     """
-    def postmatch(self, gstate, geffect, sigma):
-        return
+    def postmatch(self, gaction, geffect, sigma):
+        invsub = Subst([], [])
+        inv = self.a.revApply(invsub)
+        if not inv.filterOI(gaction, sigma):
+            return {}
+        effect = self.e.Add.toSet().union(self.e.Del.toSet())
+        #print(effect)
+        effects = AtomSet(effect)
+        #print(effects)
+        inv = effects.revApply(invsub)
+        theta = inv.filterIncOI(geffect, sigma)
+        #print(theta)
+        return theta
 
     """
     Returns a (int, Subst) pair. If the rule coves ex, this function must return
