@@ -135,9 +135,12 @@ class Rule:
         effect_vars = self.e.Add.getVarSet().union(self.e.Del.getVarSet())
         state_vars = self.s.getVarSet()
 
+
         # All vars of rule.action should occur in r.state and r.effect and r.effect may
         # refer objects/variables not occuring in r.action
-        condition_3 = action_vars.issubset(effect_vars.union(state_vars))
+        #condition_3 = action_vars.issubset(effect_vars.union(state_vars))
+        diff_variables = AtomSet(list(state.difference(effect_del).union(effect_add))).getVarSet()
+        condition_3 = action_vars.issubset(diff_variables)
         #for av in action_vars:
         #    if av not in effect_vars:
         #        return False
