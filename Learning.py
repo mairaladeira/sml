@@ -22,6 +22,12 @@ class Effect:
         #if atom in self.Del:
             #self.Del.remove(atom)
 
+    def __eq__(self, other):
+        return self.Add.toSet().__eq__(other.Add.toSet()) and self.Del.toSet().__eq__(other.Del.toSet())
+
+    def apply(self, subst):
+        return Effect(self.Add.apply(subst), self.Del.apply(subst))
+
     """
     Gets previous and new state and return the effect.
     Use the method toSet from AtomSet class in order to get the
@@ -137,6 +143,7 @@ class Rule:
         if not self.a.filterOI(gaction, sigma):
             return {}
         theta = self.s.filterIncOI(gstate, sigma)
+        #print("theta apply: "+str(self.s.apply(theta[0])))
         return theta
 
     """
@@ -156,6 +163,18 @@ class Rule:
         geffect_list = geffect.Add.toSet().union(geffect.Del.toSet())
         inv = effect.revApply(sigma)
         theta = inv.filterIncOI(AtomSet(geffect_list), sigma)
+        return theta
+
+    def postmatch2(self, gaction, geffect, sigma):
+        if not self.a.filterOI(gaction, sigma):
+            return {}
+
+        theta = self.e.filterOI(geffect, sigma)
+
+        # if (r.e)theta != geffect then return empty
+        if not (theta and self.e.apply(theta[0]).__eq__(geffect)):
+            return {}
+
         return theta
 
     """
