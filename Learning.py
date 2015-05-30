@@ -1,6 +1,6 @@
 __author__ = 'Maira'
 
-from OIlogic import Atom, AtomSet
+from OIlogic import Atom, AtomSet, Subst
 
 class Effect:
     def __init__(self, pos, neg):
@@ -40,9 +40,14 @@ class Effect:
     Return the list of atoms of all OI extensions theta of OI substitution subst,
     such that theta.Add = other.Add and theta.Del = other.Del
     """
-    def filterOI(self, other, subst):
-        atoms = []
-        return atoms
+    def filterOI(self, other, s=Subst([],[])):
+        # Union of sets
+        self_union = self.Add.toSet() | self.Del.toSet()
+        other_union = other.Add.toSet() | other.Del.toSet()
+        # Atomsets
+        self_atom_set = AtomSet(list(self_union))
+        other_atom_set = AtomSet(list(other_union))
+        return self_atom_set.filterIncOI(other_atom_set, s)
 
     #maybe new functions have to be added.
 
