@@ -112,7 +112,7 @@ class Term:
     def filterOI(self, other, s=Subst([],[])):
         if self.isVar():
             if other.isVar():
-                return self.eq(other)
+                return self.__eq__(other)
             return s.affectOI(self, other)
         else:
             return s.forbidValue(self) and self == other
