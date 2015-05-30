@@ -45,7 +45,7 @@ class Env:
         return self.model
 
     def do(self, state, action):
-        return Planner.predict(self.model,state,action)
+        return Planner.predict(self.model, state, action)
 
     def generateState(self):
         a = Term("a")

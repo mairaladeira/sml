@@ -2,6 +2,7 @@ __author__ = 'Maira'
 
 from Environment import Env
 from OIlogic import Subst
+from Learning import Effect
 
 class Agent:
     def __init__(self, env, sizeEp, npMaxSteps):
@@ -41,7 +42,6 @@ if __name__ == "__main__":
     rules = env.get_model().get_rules()
     state = env.generateState()
     actions = env.getAllActions()
-    effect = env.generateGoal(state)
     #print(effect)
     for a in actions:
         for r in rules:
@@ -49,6 +49,8 @@ if __name__ == "__main__":
                 ra = r.a
                 s1 = Subst([], [])
                 pre_m = r.prematch(state, a, s1)
+                newState = env.do(state, a)
+                effect = Effect.getEffect(state, newState)
                 post_m = r.postmatch(a, effect, s1)
 
     print('Add initialization of agent here')

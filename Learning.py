@@ -160,17 +160,15 @@ class Rule:
     - (r.e)invsubSigmaTheta = geffect
     """
     def postmatch(self, gaction, geffect, sigma):
-        invsub = Subst([], [])
-        inv = self.a.revApply(invsub)
+        self.a.filterOI(gaction, sigma)
+        inv = self.a.revApply(sigma)
         if not inv.filterOI(gaction, sigma):
             return {}
-        effect = self.e.Add.toSet().union(self.e.Del.toSet())
-        #print(effect)
-        effects = AtomSet(effect)
-        #print(effects)
-        inv = effects.revApply(invsub)
-        theta = inv.filterIncOI(geffect, sigma)
-        #print(theta)
+        effect_list = self.e.Add.toSet().union(self.e.Del.toSet())
+        effect = AtomSet(effect_list)
+        geffect_list = geffect.Add.toSet().union(geffect.Del.toSet())
+        inv = effect.revApply(sigma)
+        theta = inv.filterIncOI(AtomSet(geffect_list), sigma)
         return theta
 
     """
@@ -181,10 +179,17 @@ class Rule:
     occur, the function should return (0, None)
     """
     def covers(self, ex):
-        return [0, None]
+        pre_match = self.prematch(ex.s, ex.a, Subst([], []))
+        if len(pre_match) == 0:
+            return [0, None]
+        else:
+            post_match = self.postmatch(ex.a, ex.e, Subst([], []))
+            if len(post_match) == 0:
+                return [-1, pre_match]
+            return [1, post_match]
 
     """
-    Returns either None of a Rule and updates ownSubst and exSubst.
+    Returns either None or a Rule and updates ownSubst and exSubst.
     Check gaven pseudo code.
     """
     def postgeneralize(self, ex, ownSubst, exSubst):
