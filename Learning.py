@@ -304,7 +304,19 @@ class Model:
         for i in to_remove:
             self.rules.pop(i)
         self.rules.extend(to_add)
+
         return ret
+
+    # Don't erase: in case we need to fit the parameters in the assignment:
+    def specialize2(self, rule, ex):
+        # Find the rule that will be specialized:
+        rem_idx = -1
+        for i, r in enumerate(self.rules):
+            if r == rule:
+                rem_idx = i
+        # We remove the rule from the model and add its specialization:
+        rem_rule = self.rules.pop(rem_idx)
+        self.addRule(rem_rule.specialize(ex))
 
     """
     Function that specialize a rule.
@@ -460,12 +472,16 @@ if no rule could be generalized to cover x:
         lex = []
         specialization_done = False
         generalization_done = False
+        # Don't erase: in case we need to fit the parameters in the assignment:
         #for r in self.rules:
             # if ex contradicts rule, then specialize it:
             #if r.covers(ex)[0] == -1:
-            #    self.specialize(r, ex)
+            #    self.specialize2(r, ex)
             #    specialization_done = True
         specialization_done = self.specialize(ex)
+        print("--------- Specialization before generalization of uncovered:")
+        print(self)
+        print("---------")
         if not self.covers(ex):
             generalization_done = True
             lex.append(ex)

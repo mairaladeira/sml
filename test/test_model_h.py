@@ -53,34 +53,34 @@ ex4 = Example(
 
 
 # Example of generalization:
-model.generalize(ex1)
-model.memorizeEx(ex1)
-print(model)
-model.generalize(ex2)
-model.memorizeEx(ex2)
-print(model)
-
-print("uncovered examples: " +str(model.getUncovEx()))
-
-print("model covers ex3: "+str(model.covers(ex3)))
-print("model contradicts ex3: "+str(model.contradicts(ex3)))
-
-model.generalize(ex3)
-model.memorizeEx(ex3)
-print(model)
-
-# Test specialization:
-# new example ex4:
-print("x4 contradicts the model: "+str(model.contradicts(ex4)))
-# so we need to specialize:
-# we only have one rule, so that's the rule that is causing problems:
-model.specialize(ex4)
-
-# Check how the rule changed as it became more specialized:
-print(model)
+#model.generalize(ex1)
+#model.memorizeEx(ex1)
+#print(model)
+#model.generalize(ex2)
+#model.memorizeEx(ex2)
+#print(model)
+#
+#print("uncovered examples: " +str(model.getUncovEx()))
+#
+#print("model covers ex3: "+str(model.covers(ex3)))
+#print("model contradicts ex3: "+str(model.contradicts(ex3)))
+#
+#model.generalize(ex3)
+#model.memorizeEx(ex3)
+#print(model)
+#
+## Test specialization:
+## new example ex4:
+#print("x4 contradicts the model: "+str(model.contradicts(ex4)))
+## so we need to specialize:
+## we only have one rule, so that's the rule that is causing problems:
+#model.specialize(ex4)
+#
+## Check how the rule changed as it became more specialized:
+#print(model)
 
 #################
-# Same example using IRALe
+# Same example using IRALe (comment the first example, otherwise it won't work)
 model2 = Model()
 model2.IRALe(ex1)
 print(model2)
