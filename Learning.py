@@ -94,6 +94,13 @@ class Rule:
         s += '}'
         return s
 
+    def __eq__(self, other):
+        return self.s == other.s and self.a == other.a and self.e == other.e \
+               and self.name == other.name and self.anc == other.anc
+
+    def set_state(self, state):
+        self.s = state
+
     def set_name(self, name):
         self.name = name
 
@@ -215,30 +222,40 @@ class Rule:
     """
     Returns either None or a Rule and updates ownSubst and exSubst.
     """
-    def postgeneralize(self, ex, ownSubst, exSubst):
+    def postgeneralize(self, ex, ownSubst=Subst([],[]), exSubst=Subst([],[])):
         gact = self.a.generalize(ex.a, ownSubst, exSubst)
         if gact:
             gadd = self.e.Add.generalizeEqOI(ex.e.Add, ownSubst, exSubst)
             for g in gadd:
                 sig_1 = g[1]
                 th_1 = g[2]
-                gdel = self.e.Del.generalizeIncOI(ex.e.Del, sig_1, th_1)
+                gdel = self.e.Del.generalizeEqOI(ex.e.Del, sig_1, th_1)
                 if gdel:
-                    gpre = self.s.revApply(sig_1)
-                    ownSubst = sig_1
-                    exSubst = th_1
-                    grule = Rule(gpre, gact, Effect(g[0], gdel))
+                    gpre = self.s.revApply(gdel[0][1])
+                    ownSubst = gdel[0][1]
+                    exSubst = gdel[0][2]
+                    grule = Rule(gpre, gact, Effect(g[0], gdel[0][0]))
                     #grule.set_anc(self)
                     return grule
 
         else:
             return None
 
+    """
+    Returns the specialization of the rules such that it no longer
+    prematches de example ex
+    """
+    def specialize(self, ex):
+        if self.anc is None or self.covers(ex)[0] == 0:
+            return self
+        else:
+            return self.anc.specialize(ex)
+
 
 class Model:
     def __init__(self):
-        self.rules = set()
-        self.exMem = set()
+        self.rules = []
+        self.exMem = []
 
     def get_rules(self):
         return self.rules
@@ -260,19 +277,35 @@ class Model:
     Add a new rule to the Model
     """
     def addRule(self, rule):
-        self.rules.add(rule)
+        self.rules.append(rule)
 
     """
     Memorize a new example in the Model
     """
     def memorizeEx(self, ex):
-        self.exMem.add(ex)
+        self.exMem.append(ex)
+
+    """
+    Function that specializes the model.
+    Receives an example and a rule to specialize
+    """
+    def specialize(self, rule, ex):
+        # Find the rule that will be specialized:
+        rem_idx = -1
+        for i, r in enumerate(self.rules):
+            if r == rule:
+                rem_idx = i
+        # We remove the rule from the model and add its specialization:
+        rem_rule = self.rules.pop(rem_idx)
+        self.addRule(rem_rule.specialize(ex))
 
     """
     Function that specialize a rule.
     Use the field anc and the function prematch from Rule class
     """
-    def specialize(self, rule):
+    def specialize_old(self, rule):
+        # You don't specialize vs the counterexamples in the model!
+        # You specialize the rules in the model vs an example
         for ex in self.exMem:
             subst = Subst([], [])
             #not sure about this part. what to do with rules without anc?
@@ -282,9 +315,45 @@ class Model:
         return rule
 
     """
+    Return a boolean indicating if an example is covered by the model.
+    If False, it means that the model is incomplete for this example
+    """
+    def covers(self, ex):
+        ret = False
+        for rule in self.rules:
+            res = rule.covers(ex)
+            if res[0] == 1:
+                ret = True
+        return ret
+
+    """
+    Return a boolean indicating if an example contradicts a rule in the model.
+    If True, it means that the model is incoherent for this example
+    """
+    def contradicts(self, ex):
+        ret = False
+        # Observe that this method differs from contradicted because it iterates on the rules and not on the
+        # memorized examples.
+        for rule in self.rules:
+            res = rule.covers(ex)
+            if res[0] == -1:
+                ret = True
+        return ret
+
+    """
     Return a list of examples from exMem that are not covered by the Model anymore
     """
-    def getUncovEx(self, rule):
+    def getUncovEx(self):
+        # Here we have to compare sel.rules with self.memEx
+        uncovered_exs = []
+        for ex in self.exMem:
+            # Check if there exists a rule that covers the example:
+            if not self.covers(ex):
+                uncovered_exs.append(ex)
+        return uncovered_exs
+
+    def getUncovEx_old(self, rule): # You're right, there is no need for this parameter:
+        # We need to compare vs all rules
         uncovered_exs = []
         for ex in self.exMem:
             covers = rule.covers(ex)
@@ -295,6 +364,14 @@ class Model:
     """
     Return a boolean indicating if the rule is contradicted by the Model.
     """
+    def contradicted(self, rule):
+        is_contradicted = False
+        for ex in self.exMem:
+            res = rule.covers(ex)
+            if res[0] == -1:
+                is_contradicted = True
+        return is_contradicted
+
     def contradicted_old(self, rule):
         is_contradicted = False
         for ex in self.exMem:
@@ -310,34 +387,10 @@ class Model:
                 is_contradicted = True
         return is_contradicted
 
-    def contradicted(self, rule):
-        is_contradicted = False
-        for ex in self.exMem:
-            res = rule.covers(ex)
-            if res[0] == -1:
-                is_contradicted = True
-        return is_contradicted
-
-    # I add incoherent and incomplete methods that may be helpful
-    def is_incomplete(self, ex):
-        ret = True
-        for rule in self.rules:
-            res = rule.covers(ex)
-            if res[0] == 1:
-                ret = False
-        return ret
-
-    def is_incoherent(self, ex):
-        ret = False
-        # Observe that this method differs from contradicted because it iterates on the rules and not on the
-        # memorized examples.
-        for rule in self.rules:
-            res = rule.covers(ex)
-            if res[0] == -1:
-                ret = True
-        return ret
-
     #I added this function for the Irale algorithm.. maybe i dont understand the algorithm well, but i guess we need it
+    # This is done by the Rule.covers(ex) when the result is of the form [-1, something]
+    # I add the Model.contradicts(ex) which compares if the example is contradicted by the model,
+    # i.e. if there exists rules in self.rules that contradict ex
     @staticmethod
     def contradicted_ex(ex, r):
         is_contradicted = False
@@ -362,25 +415,35 @@ class Model:
 if no rule could be generalized to cover x:
    Add a new rule (r.p=x.s,r.a=x.a,r.e=x.e) to M
     """
-    def generalize(self, examples):
-        for ex in examples:
-            generalized = False
-            for r in self.rules:
-                sigma = Subst([], [])
-                theta = Subst([], [])
-                grule = r.postgeneralize(ex, sigma, theta)
-                if grule:
-                    gstate = ex.s.revApply(theta)
-                    gpre = grule.s.generalizeIncOI(gstate, sigma, theta)
-                    grule.p = gpre
-                    if grule.wellformed() and not self.contradicted(grule):
-                        r.set_anc(r)
-                        r = grule
-                        print(r)
-                        generalized = True
-            if not generalized:
-                new_rule = Rule(ex.s, ex.a, ex.e)
-                self.addRule(new_rule)
+    def generalize(self, ex):
+        # This list will help because we cannot change elemnt of an iterator while iterating
+        add_to_model = []
+        remove_from_model =[]
+        generalized = False
+        for i,r in enumerate(self.rules):
+            sigma = Subst([], [])
+            theta = Subst([], [])
+            grule = r.postgeneralize(ex, sigma, theta)
+            if grule:
+                gstate = ex.s.revApply(theta)
+                gpre = grule.s.generalizeIncOI(gstate, sigma, theta)
+                grule.set_state(gpre)
+                if grule.wellformed() and not self.contradicted(grule):
+                    # Adds ancestor to new generalized rule:
+                    grule.set_anc(r)
+                    add_to_model.append(grule)
+                    # Stores the index to remove from rules
+                    remove_from_model.append(i)
+                    generalized = True
+
+        for elem in remove_from_model:
+            self.rules.pop(elem)
+        for elem in add_to_model:
+            self.addRule(elem)
+
+        if not generalized:
+            new_rule = Rule(ex.s, ex.a, ex.e)
+            self.addRule(new_rule)
 
     """
     IRALe algorithm. This function should use all the previous ones.
