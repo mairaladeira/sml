@@ -71,7 +71,7 @@ class Example:
         s += 'State: '+str(self.s)+', '
         s += 'Action: '+str(self.a)+', '
         s += 'Effect: '+str(self.e)
-        s += '}\n'
+        s += '}'
         return s
 
     def set_name(self, name):
@@ -96,6 +96,9 @@ class Rule:
 
     def set_name(self, name):
         self.name = name
+
+    def set_anc(self, ans_r):
+        self.anc = ans_r
 
     @staticmethod
     def compareSubst(subst_1, subst_2):
@@ -167,42 +170,6 @@ class Rule:
         return theta
 
     """
-    Do not use
-    """
-    def postmatch_old(self, gaction, geffect, sigma):
-        condition_1 = True
-        condition_2 = True
-        ro = Subst([], [])
-        # this is not necessarily true as
-        # ((r.a)rho-1)sigma = a not  (r.a)rho-1 = a
-        self.a.filterOI(gaction, ro)
-
-        ro_subs = self.a.apply(ro)
-        #(r.a).invro
-        # you're applying ((r.a)rho)rho-1 = r.a (what's the point?)
-        inv = ro_subs.revApply(ro)
-        # so this is equivalent to making (r.a)sigma = a and the previous code is not making anything
-        if not inv.filterOI(gaction, sigma):
-            condition_1 = False
-        #(r.a).invroSigma
-        first_part = inv.apply(sigma)
-        #condition 1: (r.a)invroSigma = gaction
-        # i think this part is OK:
-        if str(first_part) != str(gaction):
-            condition_1 = False
-        theta = self.e.filterOI(geffect, sigma)
-        for t in theta:
-            subs_apply_add = self.e.Add.apply(t)
-            subs_apply_del = self.e.Del.apply(t)
-            #Condition 2 (r.e)invroSigmaTheta = geffect
-            if str(subs_apply_add) != str(geffect.Add) or str(subs_apply_del) != str(geffect.Del):
-                condition_2 = False
-        if condition_1 and condition_2:
-            return theta
-        else:
-            return {}
-
-    """
     Returns the list of substitutions R of all OI extensions theta of OI
     substitution sigma such that the rule post-matches (gstate, gaction) with
     substitution theta.
@@ -245,21 +212,8 @@ class Rule:
                 else:
                     return [1, post_match]
 
-
     """
     Returns either None or a Rule and updates ownSubst and exSubst.
-    Check gaven pseudo code.
-    if we can find a generalization gact of r.a and x.a (with sig and th):
-        Find the set R of conservative generalizations of r.e.Add and  x.e.Add
-                                starting from the same sig and th
-        for all such generalizations gadd with subst sig' and th':
-            Find a conservative generalization gdel of r.e.Del and x.e.Del
-                                starting from sig' and th'
-            if gdel exists (with subs sig'' and th''):
-                Let gpre be the reverse application of sig'' to r.p
-                grule=(gpre,gact,(gadd,gdel))
-                Return grule and update sig and th to sig'' and th''
-
     """
     def postgeneralize(self, ex, ownSubst, exSubst):
         gact = self.a.generalize(ex.a, ownSubst, exSubst)
@@ -274,6 +228,7 @@ class Rule:
                     ownSubst = sig_1
                     exSubst = th_1
                     grule = Rule(gpre, gact, Effect(g[0], gdel))
+                    #grule.set_anc(self)
                     return grule
 
         else:
@@ -295,7 +250,7 @@ class Model:
         s = 'Model:\n'
         s += '\tRules:\n'
         for r in self.rules:
-            s += '\t\t'+str(r)
+            s += '\t\t'+str(r)+'\n'
         s += '\tExamples Memory:\n'
         for ex in self.exMem:
             s += '\t\t'+str(ex)+'\n'
@@ -318,35 +273,99 @@ class Model:
     Use the field anc and the function prematch from Rule class
     """
     def specialize(self, rule):
-        return
+        for ex in self.exMem:
+            subst = Subst([], [])
+            #not sure about this part. what to do with rules without anc?
+            if not rule.prematch(ex.s, ex.a, subst) and rule.anc:
+                rule = rule.anc
+                self.specialize(rule)
+        return rule
 
     """
     Return a list of examples from exMem that are not covered by the Model anymore
     """
     def getUncovEx(self, rule):
-        return None
+        uncovered_exs = []
+        for ex in self.exMem:
+            covers = rule.covers(ex)
+            if covers[0] != 1:
+                uncovered_exs.append(ex)
+        return uncovered_exs
 
     """
     Return a boolean indicating if the rule is contradicted by the Model.
     """
     def contradicted(self, rule):
-        return True
+        is_contradicted = False
+        for ex in self.exMem:
+            sigma = Subst([], [])
+            pre_match = rule.prematch(ex.s, ex.a, sigma)
+            post_match = rule.postmatch(ex.a, ex.e, sigma)
+            #here i am saying the if the rule does not pre match or does not post match it
+            # is also contradicting the model
+            if len(pre_match) == 0 or len(post_match) == 0 or not Rule.compareSubst(pre_match[0], post_match[0]):
+                is_contradicted = True
+        return is_contradicted
+
+    #I added this function for the Irale algorithm.. maybe i dont understand the algorithm well, but i guess we need it
+    @staticmethod
+    def contradicted_ex(ex, r):
+        is_contradicted = False
+        sigma = Subst([], [])
+        pre_match = r.prematch(ex.s, ex.a, sigma)
+        post_match = r.postmatch(ex.a, ex.e, sigma)
+        if len(pre_match) == 0 or len(post_match) == 0 or not r.compareSubst(pre_match[0], post_match[0]):
+            is_contradicted = True
+        return is_contradicted
 
     """
     implement the generatization for the examples using postgeneralize from Rule class.
+    for all rules r in M:
+   Let sigma and theta be two empty Subst
+   grule=Post-Generalize(r,x,sigma,theta)
+   if grule contains a generalized rule:
+      Apply the reverse substitution of theta to x.s (to get gstate)
+      Find a generalization gpre of grule.p and gstate using extension of sigma and theta
+      Replace grule.p by gpre
+      if grule is well formed and not contradicted by any memorized example :
+         replace r by grule in M
+if no rule could be generalized to cover x:
+   Add a new rule (r.p=x.s,r.a=x.a,r.e=x.e) to M
     """
     def generalize(self, examples):
-        return
+        for ex in examples:
+            generalized = False
+            for r in self.rules:
+                sigma = Subst([], [])
+                theta = Subst([], [])
+                grule = r.postgeneralize(ex, sigma, theta)
+                if grule:
+                    gstate = ex.s.revApply(theta)
+                    gpre = grule.s.generalizeIncOI(gstate, sigma, theta)
+                    grule.p = gpre
+                    if grule.wellformed() and not self.contradicted(grule):
+                        r.set_anc(r)
+                        r = grule
+                        print(r)
+                        generalized = True
+            if not generalized:
+                new_rule = Rule(ex.s, ex.a, ex.e)
+                self.addRule(new_rule)
 
     """
     IRALe algorithm. This function should use all the previous ones.
+    I think this function has many problems
     """
     def IRALe(self, ex):
         lex = set()
         for r in self.rules:
-            if self.contradicted(ex):
-                self.specialize(r)
+            if self.contradicted_ex(ex, r):
+                new_rule = self.specialize(r)
             for e in self.getUncovEx(r):
                 lex.add(e)
+                self.memorizeEx(e)
+            if new_rule != r:
+                unc_ex = self.getUncovEx(new_rule)
+                for e in unc_ex:
+                    lex.add(e)
         self.generalize(lex)
-        #Memorize x if it triggered a revision of the theory
