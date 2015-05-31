@@ -84,7 +84,7 @@ class Env:
         acts = []
         while len(acts) < 4:
             act = random.choice(actions)
-            newS = self.do(st1,act)
+            newS = self.do(st1, act)
             if newS != st1:
                 acts.append(act)
                 st1 = newS

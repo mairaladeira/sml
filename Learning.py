@@ -78,21 +78,10 @@ class Example:
         self.name = name
 
 
-class Rule:
+class Rule(Example):
     def __init__(self, state, action, effect):
-        self.s = state
-        self.a = action
-        self.e = effect
-        self.name = ''
+        Example.__init__(self, state, action, effect)
         self.anc = None
-
-    def __str__(self):
-        s = '{'
-        s += 'State: '+str(self.s)+', '
-        s += 'Action: '+str(self.a)+', '
-        s += 'Effect: '+str(self.e)
-        s += '}'
-        return s
 
     def __eq__(self, other):
         return self.s == other.s and self.a == other.a and self.e == other.e \
