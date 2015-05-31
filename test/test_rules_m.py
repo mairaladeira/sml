@@ -70,3 +70,33 @@ if rule_2.wellformed():
     print('Substitution 1: '+str(s2))
     print('Substitution 2: '+str(s3))
     new_rule = rule_2.postgeneralize(ex_1, s2, s3)
+
+# The example from the article:
+r1 = Rule(
+    AtomSet([Atom("w\\1",[X]), Atom("w\\1",[Y]), Atom("on\\2",[X, floor]), Atom("on\\1",[Y,floor])]),
+    Atom("move\\2",[X,Y]),
+    Effect(AtomSet([Atom("on\\2",[X,Y])]),
+           AtomSet([Atom("on\\2",[X,floor])])
+    )
+)
+ex2 = Example(
+    AtomSet([Atom("w\\1",[b]), Atom("w\\1",[a]), Atom("on\\2",[b, floor]), Atom("on\\1",[a,floor])]),
+    Atom("move\\2",[b,a]),
+    Effect(AtomSet([Atom("on\\2",[b,a])]),
+           AtomSet([Atom("on\\2",[b,floor])])
+    )
+)
+ex3 = Example(
+    AtomSet([Atom("b\\1",[c]), Atom("b\\1",[d]), Atom("on\\2",[c, floor]), Atom("on\\1",[d,floor])]),
+    Atom("move\\2",[c,d]),
+    Effect(AtomSet([Atom("on\\2",[c,d])]),
+           AtomSet([Atom("on\\2",[c,floor])])
+    )
+)
+
+print('cover:')
+print('\ttype: '+str(r1.covers(ex2)[0]))
+print('\tsubst: '+str(r1.covers(ex2)[1][0]))
+print('cover:')
+print('\ttype: '+str(r1.covers(ex3)[0]))
+#print('\tsubst: '+str(r1.covers(ex3)[1][0]))

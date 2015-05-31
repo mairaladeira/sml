@@ -157,7 +157,7 @@ class Rule:
     - (r.a)sigma = gaction
     - (r.s)sigmaTheta is contained by gstate
     """
-    def prematch(self, gstate, gaction, sigma):
+    def prematch(self, gstate, gaction, sigma=Subst([],[])):
         #condition 1: (r.a)sigma = gaction
         if not self.a.filterOI(gaction, sigma):
             return {}
@@ -176,7 +176,7 @@ class Rule:
     - (r.a)invroSigma = gaction
     - (r.e)invroSigmaTheta = geffect
     """
-    def postmatch(self, gaction, geffect, sigma):
+    def postmatch(self, gaction, geffect, sigma=Subst([],[])):
         if not self.a.filterOI(gaction, sigma):
             return {}
 
@@ -295,17 +295,47 @@ class Model:
     """
     Return a boolean indicating if the rule is contradicted by the Model.
     """
-    def contradicted(self, rule):
+    def contradicted_old(self, rule):
         is_contradicted = False
         for ex in self.exMem:
             sigma = Subst([], [])
             pre_match = rule.prematch(ex.s, ex.a, sigma)
             post_match = rule.postmatch(ex.a, ex.e, sigma)
             #here i am saying the if the rule does not pre match or does not post match it
-            # is also contradicting the model
+            # is also contradicting the model.
+            # No, contradicts is when it prematches but not postmatches with same subst.
+            # This is already done by the Rule.covers method:
+            # if it returns [-1, theta] it means that it prematches but not postmatches => contradicts
             if len(pre_match) == 0 or len(post_match) == 0 or not Rule.compareSubst(pre_match[0], post_match[0]):
                 is_contradicted = True
         return is_contradicted
+
+    def contradicted(self, rule):
+        is_contradicted = False
+        for ex in self.exMem:
+            res = rule.covers(ex)
+            if res[0] == -1:
+                is_contradicted = True
+        return is_contradicted
+
+    # I add incoherent and incomplete methods that may be helpful
+    def is_incomplete(self, ex):
+        ret = True
+        for rule in self.rules:
+            res = rule.covers(ex)
+            if res[0] == 1:
+                ret = False
+        return ret
+
+    def is_incoherent(self, ex):
+        ret = False
+        # Observe that this method differs from contradicted because it iterates on the rules and not on the
+        # memorized examples.
+        for rule in self.rules:
+            res = rule.covers(ex)
+            if res[0] == -1:
+                ret = True
+        return ret
 
     #I added this function for the Irale algorithm.. maybe i dont understand the algorithm well, but i guess we need it
     @staticmethod
