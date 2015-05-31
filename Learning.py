@@ -1,7 +1,7 @@
 __author__ = 'Maira'
 
 from OIlogic import Atom, AtomSet, Subst
-
+import copy
 
 class Effect:
     def __init__(self, pos, neg):
@@ -246,7 +246,7 @@ class Rule:
     prematches de example ex
     """
     def specialize(self, ex):
-        if self.anc is None or self.covers(ex)[0] == 0:
+        if self.anc is None or not self.prematch(ex.s, ex.a):
             return self
         else:
             return self.anc.specialize(ex)
@@ -289,15 +289,22 @@ class Model:
     Function that specializes the model.
     Receives an example and a rule to specialize
     """
-    def specialize(self, rule, ex):
-        # Find the rule that will be specialized:
-        rem_idx = -1
+    def specialize(self, ex):
+        ret = False
+        to_remove = []
+        to_add = []
+        # Iterates over all rules
         for i, r in enumerate(self.rules):
-            if r == rule:
-                rem_idx = i
-        # We remove the rule from the model and add its specialization:
-        rem_rule = self.rules.pop(rem_idx)
-        self.addRule(rem_rule.specialize(ex))
+            # In example contradicts one rule, specialize the rule:
+            if r.covers(ex)[0] == -1:
+                ret = True
+                to_remove.append(i)
+                to_add.append(r.specialize(ex))
+        # Remove general rule and add specialized:
+        for i in to_remove:
+            self.rules.pop(i)
+        self.rules.extend(to_add)
+        return ret
 
     """
     Function that specialize a rule.
@@ -450,15 +457,22 @@ if no rule could be generalized to cover x:
     I think this function has many problems
     """
     def IRALe(self, ex):
-        lex = set()
-        for r in self.rules:
-            if self.contradicted_ex(ex, r):
-                new_rule = self.specialize(r)
-            for e in self.getUncovEx(r):
-                lex.add(e)
-                self.memorizeEx(e)
-            if new_rule != r:
-                unc_ex = self.getUncovEx(new_rule)
-                for e in unc_ex:
-                    lex.add(e)
-        self.generalize(lex)
+        lex = []
+        specialization_done = False
+        generalization_done = False
+        #for r in self.rules:
+            # if ex contradicts rule, then specialize it:
+            #if r.covers(ex)[0] == -1:
+            #    self.specialize(r, ex)
+            #    specialization_done = True
+        specialization_done = self.specialize(ex)
+        if not self.covers(ex):
+            generalization_done = True
+            lex.append(ex)
+        # Checks the uncovered examples due to specialization:
+        if specialization_done:
+            lex.extend(self.getUncovEx())
+        for elem in lex:
+            self.generalize(elem)
+        if specialization_done or generalization_done:
+            self.memorizeEx(ex)

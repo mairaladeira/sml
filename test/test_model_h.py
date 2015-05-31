@@ -66,5 +66,27 @@ print("model covers ex3: "+str(model.covers(ex3)))
 print("model contradicts ex3: "+str(model.contradicts(ex3)))
 
 model.generalize(ex3)
+model.memorizeEx(ex3)
 print(model)
-#
+
+# Test specialization:
+# new example ex4:
+print("x4 contradicts the model: "+str(model.contradicts(ex4)))
+# so we need to specialize:
+# we only have one rule, so that's the rule that is causing problems:
+model.specialize(ex4)
+
+# Check how the rule changed as it became more specialized:
+print(model)
+
+#################
+# Same example using IRALe
+model2 = Model()
+model2.IRALe(ex1)
+print(model2)
+model2.IRALe(ex2)
+print(model2)
+model2.IRALe(ex3) # Generalizes:
+print(model2)
+model2.IRALe(ex4) # Specializes
+print(model2)
