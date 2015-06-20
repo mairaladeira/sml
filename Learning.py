@@ -283,7 +283,9 @@ class Model:
     Memorize a new example in the Model
     """
     def memorizeEx(self, ex):
-        self.exMem.append(ex)
+        sMem = set(self.exMem)
+        sMem.add(ex)
+        self.exMem = list(sMem)
 
     """
     Function that specializes the model.
@@ -456,6 +458,7 @@ if no rule could be generalized to cover x:
                     generalized = True
 
         for elem in remove_from_model:
+            print(self)
             self.rules.pop(elem)
         for elem in add_to_model:
             self.addRule(elem)
@@ -479,16 +482,15 @@ if no rule could be generalized to cover x:
             #    self.specialize2(r, ex)
             #    specialization_done = True
         specialization_done = self.specialize(ex)
-        print("--------- Specialization before generalization of uncovered:")
-        print(self)
-        print("---------")
+
         if not self.covers(ex):
             generalization_done = True
             lex.append(ex)
+
         # Checks the uncovered examples due to specialization:
         if specialization_done:
             lex.extend(self.getUncovEx())
         for elem in lex:
+            print(elem);
             self.generalize(elem)
-        if specialization_done or generalization_done:
-            self.memorizeEx(ex)
+            self.memorizeEx(elem)
