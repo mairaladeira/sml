@@ -292,8 +292,11 @@ class Model:
                 to_remove.append(i)
                 to_add.append(r.specialize(ex))
         # Remove general rule and add specialized:
+        aux_rules = self.rules[:]
         for i in to_remove:
-            self.rules.pop(i)
+            ind = self.rules.index(aux_rules[i])
+            del self.rules[ind]
+            #self.rules.pop(i)
         self.rules.extend(to_add)
 
         return ret
@@ -445,10 +448,10 @@ if no rule could be generalized to cover x:
                     # Stores the index to remove from rules
                     remove_from_model.append(i)
                     generalized = True
-
+        aux_rules = self.rules[:]
         for elem in remove_from_model:
-            #print(self)
-            self.rules.pop(elem)
+            i = self.rules.index(aux_rules[elem])
+            del self.rules[i]
         for elem in add_to_model:
             self.addRule(elem)
 

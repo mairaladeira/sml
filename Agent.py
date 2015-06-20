@@ -56,12 +56,10 @@ class Agent:
                 self.env.get_model().IRALe(example)
                 self.state = new_state
                 if self.goal.toSet().issubset(self.state.toSet()):
-                    #print(self.env.get_model())
                     print('SUCCESS')
                     success = True
                     break
             if not success:
-                #print(self.env.get_model())
                 print('FAIL')
 
         print(self.env.get_model())

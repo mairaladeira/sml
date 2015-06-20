@@ -90,11 +90,11 @@ class Env:
                 st1 = newS
         #rint "GoalState : ",st1
         goal = list(set(st1.set)-set(state.set))
-        #k = random.randint(3, len(st1.set) - 1)
-        k = random.randint(3, len(state) - 1)
+        k = random.randint(3, len(st1.set) - 1)
+        #k = random.randint(3, len(state) - 1)
         for i in xrange(k):
-            #sup = random.choice(st1.set)
-            sup = random.choice(state.set)
+            sup = random.choice(st1.set)
+            #sup = random.choice(state.set)
             if sup not in goal:
                 goal.append(sup)
         return AtomSet(goal)
