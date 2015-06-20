@@ -5,7 +5,7 @@ from Learning import Model, Rule, Effect
 
 
 class Planner:
-    CMD_ASP = "./clingo 1 --verbose=0 --Wno-atom-undefined "
+    CMD_ASP = "./clingo 1 --verbose=0 -Wno-atom-undefined "
     MOTEUR = "./moteurPlan.lp"
 
     HORIZON = 3
