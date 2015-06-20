@@ -447,7 +447,7 @@ if no rule could be generalized to cover x:
                     generalized = True
 
         for elem in remove_from_model:
-            print(self)
+            #print(self)
             self.rules.pop(elem)
         for elem in add_to_model:
             self.addRule(elem)
@@ -480,6 +480,6 @@ if no rule could be generalized to cover x:
         if specialization_done:
             lex.extend(self.getUncovEx())
         for elem in lex:
-            print(elem);
+            #print(elem);
             self.generalize(elem)
             self.memorizeEx(elem)
